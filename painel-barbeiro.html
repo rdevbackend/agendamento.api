@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Profissional - Barbearia Borsan's</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #0d0b18 0%, #030206 50%, #130a24 100%);
+      background-attachment: fixed;
+      color: #F4F4F5;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    .main-card {
+      background: linear-gradient(180deg, #181528 0%, #0F0D1B 100%);
+      border-radius: 24px;
+      box-shadow: 0 10px 40px rgba(124, 58, 237, 0.15);
+      border: 1px solid #2E2845;
+    }
+
+    .custom-input {
+      background-color: #1A162B;
+      border: 1px solid #2E2845;
+      color: #FFFFFF;
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
+    .custom-input:focus {
+      background-color: #1A162B;
+      color: #FFFFFF;
+      border-color: #8B5CF6;
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+    }
+
+    .appointment-card {
+      background-color: #1A162B;
+      border: 1px solid #2E2845;
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+    .appointment-card:hover {
+      border-color: #7C3AED;
+      transform: translateY(-2px);
+    }
+
+    .badge-time {
+      background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .badge-price {
+      color: #A78BFA;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body class="py-4">
+
+  <div class="container" style="max-width: 900px;">
+    <div class="main-card p-4 p-md-5">
+      
+      <!-- Cabeçalho -->
+      <div class="d-flex align-items-center justify-content-between mb-4 pb-3" style="border-bottom: 1px solid #2E2845;">
+        <div>
+          <h4 class="fw-bold mb-1 text-white">Agenda do Profissional 💈</h4>
+          <p class="text-muted small mb-0">Consulte os seus clientes, tempos e valores dos agendamentos.</p>
+        </div>
+      </div>
+
+      <!-- Filtro de Barbeiro -->
+      <div class="mb-4">
+        <label class="fw-bold mb-2 text-white">Selecione o Profissional</label>
+        <select id="selectBarbeiro" class="form-select custom-input" onchange="carregarAgendamentos()">
+          <option value="Lucas Silva">Lucas Silva</option>
+          <option value="Kauan Borsan">Kauan Borsan</option>
+        </select>
+      </div>
+
+      <!-- Resumo do Dia -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="p-3 rounded-3" style="background-color: #141122; border: 1px solid #2E2845;">
+            <small class="text-muted d-block">Total de Clientes</small>
+            <span class="fs-4 fw-bold text-white" id="statClientes">0</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded-3" style="background-color: #141122; border: 1px solid #2E2845;">
+            <small class="text-muted d-block">Tempo Estimado</small>
+            <span class="fs-4 fw-bold text-white" id="statTempo">0 min</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded-3" style="background-color: #141122; border: 1px solid #2E2845;">
+            <small class="text-muted d-block">Faturamento do Dia</small>
+            <span class="fs-4 fw-bold" style="color: #A78BFA;" id="statFaturamento">R$ 0,00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Clientes Agendados -->
+      <h6 class="fw-bold mb-3 text-white">Próximos Agendamentos</h6>
+      <div id="listaAgendamentos" class="d-flex flex-column gap-3">
+        <!-- Renderizado dinamicamente pelo JavaScript -->
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // URL da API backend (ajustar a porta se necessário)
+    const API_URL = '/api/agendamentos/barbeiro';
+
+    window.onload = () => {
+      carregarAgendamentos();
+    };
+
+    async function carregarAgendamentos() {
+      const barbeiro = document.getElementById('selectBarbeiro').value;
+      const container = document.getElementById('listaAgendamentos');
+
+      try {
+        const response = await fetch(`${API_URL}/${encodeURIComponent(barbeiro)}`);
+        
+        if (!response.ok) {
+          throw new Error('Erro ao procurar agendamentos');
+        }
+
+        const agendamentos = await response.json();
+        renderizarAgendamentos(agendamentos);
+      } catch (err) {
+        console.warn('Erro ao ligar à API, a apresentar dados de demonstração:', err);
+        // Fallback com dados de teste local se a API não estiver a responder
+        const dadosLocais = [
+          { id: 1, barbeiro: 'Lucas Silva', clienteNome: 'João Silva', clienteTelefone: '(16) 99888-7766', dataHora: '2026-09-27T10:00:00', servicos: 'Corte de cabelo + Barba', tempoTotalMinutos: 60, precoTotal: 60.00, observacao: 'Prefere degradê baixo' },
+          { id: 2, barbeiro: 'Lucas Silva', clienteNome: 'Carlos Eduardo', clienteTelefone: '(16) 99111-2233', dataHora: '2026-09-27T14:00:00', servicos: 'Corte de cabelo', tempoTotalMinutos: 30, precoTotal: 35.00, observacao: '' }
+        ];
+        renderizarAgendamentos(dadosLocais.filter(a => a.barbeiro === barbeiro));
+      }
+    }
+
+    function renderizarAgendamentos(lista) {
+      const container = document.getElementById('listaAgendamentos');
+
+      if (lista.length === 0) {
+        container.innerHTML = '<p class="text-muted small">Sem agendamentos para este profissional.</p>';
+        atualizarEstatisticas(0, 0, 0);
+        return;
+      }
+
+      let tempoTotal = 0;
+      let faturamentoTotal = 0;
+
+      container.innerHTML = lista.map(item => {
+        tempoTotal += item.tempoTotalMinutos;
+        faturamentoTotal += item.precoTotal;
+
+        const dataObj = new Date(item.dataHora);
+        const horaFormatada = dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div class="appointment-card">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <span class="badge-time mb-2 d-inline-block">⏰ ${horaFormatada}</span>
+                <h5 class="fw-bold text-white mb-1">${item.clienteNome}</h5>
+                <small style="color: #A1A1AA;">📱 ${item.clienteTelefone}</small>
+              </div>
+              <span class="badge-price">R$ ${item.precoTotal.toFixed(2)}</span>
+            </div>
+
+            <div class="mt-3 pt-2" style="border-top: 1px solid #2E2845;">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="small text-white"><strong>Serviço:</strong> ${item.servicos}</span>
+                <span class="small" style="color: #A1A1AA;">⏱️ ${item.tempoTotalMinutos} min</span>
+              </div>
+              ${item.observacao ? `
+                <div class="mt-2 p-2 rounded" style="background-color: #141122; border: 1px border #2E2845;">
+                  <small style="color: #FBBF24;">📌 Obs: "${item.observacao}"</small>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      atualizarEstatisticas(lista.length, tempoTotal, faturamentoTotal);
+    }
+
+    function atualizarEstatisticas(qtd, tempo, faturamento) {
+      document.getElementById('statClientes').innerText = qtd;
+      document.getElementById('statTempo').innerText = `${tempo} min`;
+      document.getElementById('statFaturamento').innerText = `R$ ${faturamento.toFixed(2)}`;
+    }
+  </script>
+</body>
+</html>

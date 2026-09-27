@@ -1,68 +1,75 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using AgendamentoApi.Data;
-using AgendamentoApi.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AgendamentoApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AgendamentoController : ControllerBase
+    public class AgendamentosController : ControllerBase
     {
-        private readonly AppDbContext _context;
-
-        public AgendamentoController(AppDbContext context)
+        // Lista simulada de agendamentos em memória (substituir por base de dados se usares Entity Framework)
+        private static readonly List<AgendamentoDto> Agendamentos = new()
         {
-            _context = context;
-        }
-
-        // GET: api/Agendamento/servicos
-        [HttpGet("servicos")]
-        public async Task<ActionResult<IEnumerable<Servico>>> GetServicos()
-        {
-            return await _context.Servicos.ToListAsync();
-        }
-
-        // GET: api/Agendamento
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Agendamento>>> GetAgendamentos()
-        {
-            return await _context.Agendamentos
-                .Include(a => a.Cliente)
-                .Include(a => a.Servico)
-                .ToListAsync();
-        }
-
-        // POST: api/Agendamento
-        [HttpPost]
-        public async Task<ActionResult<Agendamento>> CriarAgendamento(Agendamento agendamento)
-        {
-            var servico = await _context.Servicos.FindAsync(agendamento.ServicoId);
-            if (servico == null)
-            {
-                return BadRequest("Serviço não encontrado.");
+            new AgendamentoDto {
+                Id = 1,
+                Barbeiro = "Lucas Silva",
+                ClienteNome = "João Silva",
+                ClienteTelefone = "(16) 99888-7766",
+                DataHora = DateTime.Today.AddHours(10),
+                Servicos = "Corte de cabelo + Barba",
+                TempoTotalMinutos = 60,
+                PrecoTotal = 60.00m,
+                Observacao = "Prefere degradê baixo"
+            },
+            new AgendamentoDto {
+                Id = 2,
+                Barbeiro = "Lucas Silva",
+                ClienteNome = "Carlos Eduardo",
+                ClienteTelefone = "(16) 99111-2233",
+                DataHora = DateTime.Today.AddHours(14),
+                Servicos = "Corte de cabelo",
+                TempoTotalMinutos = 30,
+                PrecoTotal = 35.00m,
+                Observacao = ""
+            },
+            new AgendamentoDto {
+                Id = 3,
+                Barbeiro = "Kauan Borsan",
+                ClienteNome = "Mateus Souza",
+                ClienteTelefone = "(16) 98877-6655",
+                DataHora = DateTime.Today.AddHours(11),
+                Servicos = "Barba desenhada",
+                TempoTotalMinutos = 30,
+                PrecoTotal = 25.00m,
+                Observacao = "Alergia a lâmina tradicional"
             }
+        };
 
-            _context.Agendamentos.Add(agendamento);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetAgendamentos), new { id = agendamento.Id }, agendamento);
-        }
-
-        // DELETE: api/Agendamento/1
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> CancelarAgendamento(int id)
+        // GET: api/agendamentos/barbeiro/Lucas Silva
+        [HttpGet("barbeiro/{nomeBarbeiro}")]
+        public IActionResult GetPorBarbeiro(string nomeBarbeiro)
         {
-            var agendamento = await _context.Agendamentos.FindAsync(id);
-            if (agendamento == null)
-            {
-                return NotFound("Agendamento não encontrado.");
-            }
+            var agendamentosBarbeiro = Agendamentos
+                .Where(a => a.Barbeiro.Equals(nomeBarbeiro, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(a => a.DataHora)
+                .ToList();
 
-            _context.Agendamentos.Remove(agendamento);
-            await _context.SaveChangesAsync();
-
-            return NoContent(); // Retorna 204
+            return Ok(agendamentosBarbeiro);
         }
+    }
+
+    public class AgendamentoDto
+    {
+        public int Id { get; set; }
+        public string Barbeiro { get; set; } = string.Empty;
+        public string ClienteNome { get; set; } = string.Empty;
+        public string ClienteTelefone { get; set; } = string.Empty;
+        public DateTime DataHora { get; set; }
+        public string Servicos { get; set; } = string.Empty;
+        public int TempoTotalMinutos { get; set; }
+        public decimal PrecoTotal { get; set; }
+        public string Observacao { get; set; } = string.Empty;
     }
 }
