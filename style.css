@@ -1,0 +1,166 @@
+/* Configurações Globais */
+body {
+  background: linear-gradient(135deg, #0d0b18 0%, #030206 50%, #130a24 100%);
+  background-attachment: fixed;
+  color: #F4F4F5;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* Ajuste de Contraste para Textos Secundários */
+.text-muted {
+  color: #A1A1AA !important;
+}
+
+/* Card Principal */
+.main-card {
+  background: linear-gradient(180deg, #181528 0%, #0F0D1B 100%);
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(124, 58, 237, 0.15);
+  border: 1px solid #2E2845;
+}
+
+/* Inputs Personalizados */
+.custom-input {
+  background-color: #1A162B;
+  border: 1px solid #2E2845;
+  color: #FFFFFF;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.custom-input:focus {
+  background-color: #1A162B;
+  color: #FFFFFF;
+  border-color: #8B5CF6;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+}
+.custom-input::placeholder {
+  color: #A1A1AA;
+}
+
+/* Pílulas de Categoria */
+.nav-pill-custom {
+  background-color: #231E38;
+  color: #D4D4D8;
+  border-radius: 50px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid #332B52;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.nav-pill-custom.active {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+/* Cards de Serviços */
+.service-card {
+  background-color: #1A162B;
+  border: 1px solid #2E2845;
+  border-radius: 16px;
+  padding: 16px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.service-card:hover {
+  border-color: #7C3AED;
+  transform: translateY(-2px);
+}
+.service-card.selected {
+  border: 2px solid #A78BFA;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(109, 40, 217, 0.1) 100%);
+}
+
+.btn-add {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #3D355C;
+  background-color: #231E38;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+.service-card.selected .btn-add {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+  border: none;
+}
+
+/* Painel do Resumo */
+.summary-card {
+  background-color: #141122;
+  border: 1px solid #2E2845;
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.btn-continue {
+  background-color: #2B2545;
+  color: #A1A1AA;
+  border-radius: 14px;
+  padding: 14px;
+  font-weight: 700;
+  width: 100%;
+  border: 1px solid #3B325C;
+  transition: all 0.3s;
+}
+.btn-continue.active {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 18px rgba(139, 92, 246, 0.5);
+  cursor: pointer;
+}
+
+/* Slots de Horário */
+.time-slot {
+  border: 1px solid #2E2845;
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  font-weight: 600;
+  background-color: #1A162B;
+  color: #E4E4E7;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.time-slot.selected {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+  color: #FFFFFF;
+  border-color: #A78BFA;
+}
+
+/* Estilos do Painel do Barbeiro */
+.appointment-card {
+  background-color: #1A162B;
+  border: 1px solid #2E2845;
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+.appointment-card:hover {
+  border-color: #7C3AED;
+  transform: translateY(-2px);
+}
+
+.badge-time {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+  color: #FFFFFF;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.badge-price {
+  color: #C4B5FD !important;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
