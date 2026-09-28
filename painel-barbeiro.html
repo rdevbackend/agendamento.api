@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barbearia Borsan's - Agendamento</title>
+  <title>Painel do Barbeiro - Borsan's</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- SweetAlert2 (Para avisos e notificações elegantes) -->
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
@@ -22,7 +23,6 @@
       min-height: 100vh;
     }
 
-    /* Sobrescreve o text-muted para um tom claro legível */
     .text-muted {
       color: #A1A1AA !important;
     }
@@ -34,13 +34,12 @@
       border: 1px solid #2E2845;
     }
 
-    /* Inputs Personalizados */
     .custom-input {
       background-color: #1A162B;
       border: 1px solid #2E2845;
       color: #FFFFFF;
       border-radius: 12px;
-      padding: 12px 16px;
+      padding: 10px 14px;
     }
     .custom-input:focus {
       background-color: #1A162B;
@@ -48,11 +47,7 @@
       border-color: #8B5CF6;
       box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
     }
-    .custom-input::placeholder {
-      color: #A1A1AA;
-    }
 
-    /* Pílulas de Categoria */
     .nav-pill-custom {
       background-color: #231E38;
       color: #D4D4D8;
@@ -72,101 +67,42 @@
       box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
     }
 
-    /* Cards de Serviços */
-    .service-card {
+    .appointment-card {
       background-color: #1A162B;
       border: 1px solid #2E2845;
       border-radius: 16px;
-      padding: 16px;
+      padding: 20px;
       transition: all 0.2s;
-      cursor: pointer;
     }
-    .service-card:hover {
+    .appointment-card:hover {
       border-color: #7C3AED;
       transform: translateY(-2px);
     }
-    .service-card.selected {
-      border: 2px solid #A78BFA;
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(109, 40, 217, 0.1) 100%);
+
+    .badge-time {
+      background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+      color: #FFFFFF;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
     }
 
-    .btn-add {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 1px solid #3D355C;
-      background-color: #231E38;
-      color: #FFFFFF;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .badge-status {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
       font-weight: 600;
     }
-    .service-card.selected .btn-add {
-      background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
-      border: none;
-    }
+    .status-confirmado { background-color: rgba(59, 130, 246, 0.2); color: #60A5FA; border: 1px solid #2563EB; }
+    .status-concluido { background-color: rgba(34, 197, 94, 0.2); color: #4ADE80; border: 1px solid #16A34A; }
+    .status-cancelado { background-color: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid #DC2626; }
 
-    /* Painel do Resumo */
-    .summary-card {
+    .summary-box {
       background-color: #141122;
       border: 1px solid #2E2845;
-      border-radius: 20px;
-      padding: 24px;
-    }
-
-    .btn-continue {
-      background-color: #2B2545;
-      color: #A1A1AA;
-      border-radius: 14px;
-      padding: 14px;
-      font-weight: 700;
-      width: 100%;
-      border: 1px solid #3B325C;
-      transition: all 0.3s;
-    }
-    .btn-continue.active {
-      background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
-      color: #FFFFFF;
-      border: none;
-      box-shadow: 0 4px 18px rgba(139, 92, 246, 0.5);
-      cursor: pointer;
-    }
-
-    .time-slot {
-      border: 1px solid #2E2845;
-      border-radius: 12px;
-      padding: 10px;
-      text-align: center;
-      font-weight: 600;
-      background-color: #1A162B;
-      color: #E4E4E7;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .time-slot.selected {
-      background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
-      color: #FFFFFF;
-      border-color: #A78BFA;
-    }
-
-    /* Customização do SweetAlert2 para combinar com a Barbearia */
-    .swal2-popup-dark {
-      background: #181528 !important;
-      border: 1px solid #2E2845 !important;
-      border-radius: 20px !important;
-      color: #FFFFFF !important;
-      font-family: 'Inter', sans-serif !important;
-    }
-    .swal2-title-dark {
-      color: #FFFFFF !important;
-    }
-    .swal2-confirm-btn {
-      background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%) !important;
-      border-radius: 12px !important;
-      padding: 12px 28px !important;
-      font-weight: 600 !important;
-      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4) !important;
+      border-radius: 16px;
+      padding: 16px;
     }
   </style>
 </head>
@@ -175,336 +111,143 @@
   <div class="container" style="max-width: 1100px;">
     <div class="main-card p-4 p-md-5">
       
-      <!-- Cabeçalho -->
-      <div class="d-flex align-items-center justify-content-between mb-4">
-        <div class="d-flex align-items-center gap-3">
-          <button id="btnVoltar" class="btn btn-outline-light rounded-circle p-2 d-none" style="border-color: #3D355C; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" onclick="irParaPasso(1)">←</button>
-          <h4 class="fw-bold mb-0 text-white" id="tituloPasso">Selecionar serviços</h4>
+      <!-- Cabeçalho do Painel do Barbeiro -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3" style="border-bottom: 1px solid #2E2845;">
+        <div>
+          <h4 class="fw-bold mb-1 text-white">Painel do Barbeiro 💈</h4>
+          <p class="text-muted small mb-0">Gestão de agendamentos e faturamento em tempo real</p>
+        </div>
+        
+        <div class="d-flex align-items-center gap-2">
+          <label class="small text-muted text-nowrap">Data:</label>
+          <input type="date" id="filtroData" class="form-control custom-input" style="color-scheme: dark;" onchange="filtrarAgendamentos()">
         </div>
       </div>
 
-      <div class="row g-4">
-        <!-- Coluna Principal -->
-        <div class="col-lg-7">
-          
-          <!-- PASSO 1: Seleção de Serviços e Busca -->
-          <div id="passo1">
-            <div class="mb-3">
-              <input type="text" id="inputBusca" class="form-control custom-input" placeholder="🔍 Buscar serviço (ex: corte, barba)..." oninput="filtrarServicos()">
-            </div>
-
-            <div class="d-flex gap-2 overflow-auto pb-2 mb-4">
-              <button class="nav-pill-custom active" onclick="filtrarCategoria('todos', this)">Todos</button>
-              <button class="nav-pill-custom" onclick="filtrarCategoria('Cabelo', this)">Cabelo</button>
-              <button class="nav-pill-custom" onclick="filtrarCategoria('Barba', this)">Barba</button>
-              <button class="nav-pill-custom" onclick="filtrarCategoria('Combo', this)">Combo</button>
-              <button class="nav-pill-custom" onclick="filtrarCategoria('Pezinho', this)">Pezinho</button>
-            </div>
-
-            <div id="listaServicos" class="d-flex flex-column gap-3"></div>
-          </div>
-
-          <!-- PASSO 2: Barbeiro, Data, Horário e Dados do Cliente -->
-          <div id="passo2" class="d-none">
-            
-            <div class="mb-4">
-              <label class="fw-bold mb-2 text-white">Escolha o Profissional</label>
-              <select id="selectBarbeiro" class="form-select custom-input">
-                <option value="Sem preferência">Sem preferência (Qualquer barbeiro disponível)</option>
-                <option value="Kauan Borsan">Kauan Borsan</option>
-                <option value="Lucas Silva">Lucas Silva</option>
-              </select>
-            </div>
-
-            <div class="mb-4">
-              <label class="fw-bold mb-2 text-white">Selecione uma data</label>
-              <input type="date" id="inputData" class="form-control custom-input" style="color-scheme: dark;" onchange="carregarHorarios()">
-            </div>
-
-            <div class="mb-4">
-              <label class="fw-bold mb-2 text-white">Escolha um horário</label>
-              <div id="gridHorarios" class="row row-cols-2 row-cols-md-3 g-2"></div>
-            </div>
-
-            <div class="border-top pt-4 mt-4" style="border-color: #2E2845 !important;">
-              <h6 class="fw-bold mb-3 text-white">Seus dados para agendamento</h6>
-              
-              <div class="mb-3">
-                <label class="small text-muted mb-1">Nome completo</label>
-                <input type="text" id="nomeCliente" class="form-control custom-input" placeholder="Digite seu nome">
-              </div>
-
-              <div class="mb-3">
-                <label class="small text-muted mb-1">WhatsApp / Celular</label>
-                <input type="text" id="telCliente" class="form-control custom-input" placeholder="(00) 00000-0000" maxlength="15" oninput="aplicarMascaraTelefone(this)">
-              </div>
-
-              <div class="mb-3">
-                <label class="small text-muted mb-1">Observações (opcional)</label>
-                <textarea id="obsCliente" class="form-control custom-input" rows="2" placeholder="Ex: Tenho alergia a tal produto, prefiro degradê baixo..."></textarea>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-        <!-- Coluna do Resumo Lateral -->
-        <div class="col-lg-5">
-          <div class="summary-card">
-            
-            <div class="d-flex align-items-center gap-3 mb-4 pb-3" style="border-bottom: 1px solid #2E2845;">
-              <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%); color: white; font-size: 20px;">
-                💈
-              </div>
-              <div>
-                <h6 class="fw-bold mb-0 text-white">Barbearia Borsan's</h6>
-                <small style="color: #A1A1AA;">⭐ 5.0 (205) • Av. Alto da Boa Vista</small>
-              </div>
-            </div>
-
-            <div id="resumoServicos" class="d-flex flex-column gap-3 mb-3">
-              <p class="small mb-0" style="color: #A1A1AA;">Nenhum serviço selecionado.</p>
-            </div>
-
-            <div id="boxTempo" class="d-none justify-content-between align-items-center mb-3 text-muted small">
-              <span>⏱️ Duração estimada:</span>
-              <span id="tempoTotal" class="text-white fw-bold">0 min</span>
-            </div>
-
-            <div class="d-flex align-items-center justify-content-between pt-3 mb-4" style="border-top: 1px solid #2E2845;">
-              <span class="fw-bold text-white">Total</span>
-              <span class="fw-bold fs-4" style="color: #A78BFA;" id="totalPreco">R$ 0</span>
-            </div>
-
-            <button id="btnContinuar" class="btn btn-continue" disabled onclick="avancarPasso()">Continuar</button>
-
+      <!-- Resumo do Dia -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="summary-box text-center">
+            <span class="text-muted small d-block mb-1">Confirmados</span>
+            <h4 class="fw-bold text-white mb-0" id="totalAgendados">0</h4>
           </div>
         </div>
-
+        <div class="col-6 col-md-3">
+          <div class="summary-box text-center">
+            <span class="text-muted small d-block mb-1">Concluídos</span>
+            <h4 class="fw-bold text-success mb-0" id="totalConcluidos">0</h4>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="summary-box text-center">
+            <span class="text-muted small d-block mb-1">Cancelados</span>
+            <h4 class="fw-bold text-danger mb-0" id="totalCancelados">0</h4>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="summary-box text-center">
+            <span class="text-muted small d-block mb-1">Faturamento</span>
+            <h4 class="fw-bold mb-0" style="color: #A78BFA;" id="faturamentoTotal">R$ 0</h4>
+          </div>
+        </div>
       </div>
+
+      <!-- Filtros por Status -->
+      <div class="d-flex gap-2 overflow-auto pb-2 mb-4">
+        <button class="nav-pill-custom active" onclick="filtrarStatus('todos', this)">Todos os Status</button>
+        <button class="nav-pill-custom" onclick="filtrarStatus('Confirmado', this)">Confirmados</button>
+        <button class="nav-pill-custom" onclick="filtrarStatus('Concluído', this)">Concluídos</button>
+        <button class="nav-pill-custom" onclick="filtrarStatus('Cancelado', this)">Cancelados</button>
+      </div>
+
+      <!-- Lista de Agendamentos -->
+      <div id="listaAgendamentos" class="d-flex flex-column gap-3"></div>
+
     </div>
   </div>
 
   <script>
-    const servicos = [
-      { id: 1, nome: "Corte de cabelo masculino", min: 30, preco: 35, cat: "Cabelo" },
-      { id: 2, nome: "Corte mais hidratação", min: 45, preco: 50, cat: "Combo" },
-      { id: 3, nome: "Cabelo e barba na navalha", min: 60, preco: 60, cat: "Combo" },
-      { id: 4, nome: "Barba desenhada", min: 30, preco: 25, cat: "Barba" },
-      { id: 5, nome: "Sobrancelha", min: 10, preco: 15, cat: "Pezinho" },
-      { id: 6, nome: "Pigmentação / Platina", min: 60, preco: 55, cat: "Cabelo" }
+    let agendamentos = [
+      { id: 1, horario: "09:00", cliente: "Matheus Santos", telefone: "(16) 99123-4567", servicos: "Corte masculino + Barba", barbeiro: "Kauan Borsan", preco: 60, status: "Confirmado", obs: "Prefere degradê baixo na máquina 1." },
+      { id: 2, horario: "10:00", cliente: "Rodrigo Almeida", telefone: "(16) 99876-5432", servicos: "Corte mais hidratação", barbeiro: "Lucas Silva", preco: 50, status: "Concluído", obs: "" },
+      { id: 3, horario: "11:00", cliente: "Gabriel Costa", telefone: "(16) 99333-2211", servicos: "Corte de cabelo masculino", barbeiro: "Lucas Silva", preco: 35, status: "Confirmado", obs: "" }
     ];
 
-    let selecionados = [];
-    let passoAtual = 1;
-    let horarioEscolhido = '';
-    let categoriaAtual = 'todos';
+    let statusAtual = 'todos';
 
     window.onload = () => {
-      renderizarServicos(servicos);
-      document.getElementById('inputData').value = new Date().toISOString().split('T')[0];
+      document.getElementById('filtroData').value = new Date().toISOString().split('T')[0];
+      filtrarAgendamentos();
     };
 
-    function aplicarMascaraTelefone(input) {
-      let v = input.value.replace(/\D/g, "");
-      v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
-      v = v.replace(/(\d)(\d{4})$/, "$1-$2");
-      input.value = v;
-    }
-
-    function renderizarServicos(lista) {
-      const container = document.getElementById('listaServicos');
-      if (lista.length === 0) {
-        container.innerHTML = '<p class="text-muted small">Nenhum serviço encontrado.</p>';
-        return;
-      }
-      container.innerHTML = lista.map(s => {
-        const isSelected = selecionados.some(item => item.id === s.id);
-        return `
-          <div class="service-card d-flex align-items-center justify-content-between ${isSelected ? 'selected' : ''}" onclick="toggleServico(${s.id})">
-            <div>
-              <h6 class="fw-bold mb-1 text-white">${s.nome}</h6>
-              <small class="d-block mb-2" style="color: #A1A1AA;">⏱️ ${s.min} min</small>
-              <span class="fw-bold" style="color: #A78BFA;">R$ ${s.preco}</span>
-            </div>
-            <div class="btn-add">${isSelected ? '✓' : '+'}</div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function filtrarCategoria(cat, btn) {
+    function filtrarStatus(status, btn) {
       document.querySelectorAll('.nav-pill-custom').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      categoriaAtual = cat;
-      filtrarServicos();
+      statusAtual = status;
+      filtrarAgendamentos();
     }
 
-    function filtrarServicos() {
-      const busca = document.getElementById('inputBusca').value.toLowerCase();
-      const filtrados = servicos.filter(s => {
-        const bateCategoria = categoriaAtual === 'todos' || s.cat === categoriaAtual;
-        const bateBusca = s.nome.toLowerCase().includes(busca);
-        return bateCategoria && bateBusca;
-      });
-      renderizarServicos(filtrados);
+    function filtrarAgendamentos() {
+      const filtrados = agendamentos.filter(a => statusAtual === 'todos' || a.status === statusAtual);
+      renderizarAgendamentos(filtrados);
+      atualizarMetricas();
     }
 
-    function toggleServico(id) {
-      const index = selecionados.findIndex(s => s.id === id);
-      if (index > -1) {
-        selecionados.splice(index, 1);
-      } else {
-        selecionados.push(servicos.find(item => item.id === id));
-      }
-      filtrarServicos();
-      atualizarResumo();
-    }
+    function renderizarAgendamentos(lista) {
+      const container = document.getElementById('listaAgendamentos');
 
-    function atualizarResumo() {
-      const container = document.getElementById('resumoServicos');
-      const totalEl = document.getElementById('totalPreco');
-      const boxTempo = document.getElementById('boxTempo');
-      const tempoEl = document.getElementById('tempoTotal');
-      const btn = document.getElementById('btnContinuar');
-
-      if (selecionados.length === 0) {
-        container.innerHTML = '<p class="small mb-0" style="color: #A1A1AA;">Nenhum serviço selecionado.</p>';
-        totalEl.innerText = 'R$ 0';
-        boxTempo.classList.add('d-none');
-        btn.disabled = true;
-        btn.classList.remove('active');
+      if (lista.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center py-4">Nenhum agendamento encontrado.</p>';
         return;
       }
 
-      container.innerHTML = selecionados.map(s => `
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <div class="fw-semibold small text-white">${s.nome}</div>
-            <small style="color: #A1A1AA;">${s.min} min</small>
-          </div>
-          <span class="fw-bold small" style="color: #A78BFA;">R$ ${s.preco}</span>
-        </div>
-      `).join('');
-
-      const total = selecionados.reduce((acc, curr) => acc + curr.preco, 0);
-      const tempoTotal = selecionados.reduce((acc, curr) => acc + curr.min, 0);
-
-      totalEl.innerText = `R$ ${total}`;
-      tempoEl.innerText = `${tempoTotal} min`;
-      boxTempo.classList.remove('d-none');
-      boxTempo.classList.add('d-flex');
-
-      btn.disabled = false;
-      btn.classList.add('active');
-    }
-
-    function avancarPasso() {
-      if (passoAtual === 1) {
-        irParaPasso(2);
-      } else if (passoAtual === 2) {
-        const nome = document.getElementById('nomeCliente').value.trim();
-        const tel = document.getElementById('telCliente').value.trim();
-        const barbeiro = document.getElementById('selectBarbeiro').value;
-        const data = document.getElementById('inputData').value;
-        const obs = document.getElementById('obsCliente').value.trim();
-
-        if (!horarioEscolhido) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Horário necessário',
-            text: 'Por favor, selecione um horário para o atendimento!',
-            customClass: { popup: 'swal2-popup-dark', title: 'swal2-title-dark', confirmButton: 'swal2-confirm-btn' },
-            buttonsStyling: false
-          });
-          return;
-        }
-
-        if (!nome || !tel) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Campos em falta',
-            text: 'Por favor, preencha o seu nome e telefone.',
-            customClass: { popup: 'swal2-popup-dark', title: 'swal2-title-dark', confirmButton: 'swal2-confirm-btn' },
-            buttonsStyling: false
-          });
-          return;
-        }
-
-        // Formatação dos serviços selecionados
-        const listaNomesServicos = selecionados.map(s => s.nome).join(', ');
-        const total = document.getElementById('totalPreco').innerText;
-
-        // Notificação Modal Personalizada e Estilizada
-        Swal.fire({
-          icon: 'success',
-          title: '✨ Agendamento Solicitado!',
-          html: `
-            <div class="text-start fs-6 lh-base px-2">
-              <p class="mb-1"><strong>Cliente:</strong> ${nome}</p>
-              <p class="mb-1"><strong>Telefone:</strong> ${tel}</p>
-              <p class="mb-1"><strong>Barbeiro:</strong> ${barbeiro}</p>
-              <p class="mb-1"><strong>Data & Horário:</strong> ${data} às ${horarioEscolhido}</p>
-              <p class="mb-1"><strong>Serviços:</strong> ${listaNomesServicos}</p>
-              <p class="mb-2"><strong>Total:</strong> <span style="color: #A78BFA; font-weight: 700;">${total}</span></p>
-              ${obs ? `<p class="mb-0 text-warning small mt-2"><strong>Observações:</strong> "${obs}"</p>` : ''}
+      container.innerHTML = lista.map(a => `
+        <div class="appointment-card d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+          
+          <div class="d-flex align-items-start gap-3">
+            <span class="badge-time">${a.horario}</span>
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <h6 class="fw-bold mb-0 text-white">${a.cliente}</h6>
+                <span class="badge-status status-${a.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}">${a.status}</span>
+              </div>
+              <p class="small text-muted mb-1"><strong>Serviço:</strong> ${a.servicos}</p>
+              <p class="small text-muted mb-1"><strong>Barbeiro:</strong> ${a.barbeiro} • <strong>Tel:</strong> ${a.telefone}</p>
+              ${a.obs ? `<p class="small text-warning mb-0">💬 <em>"${a.obs}"</em></p>` : ''}
             </div>
-          `,
-          confirmButtonText: 'Confirmar Agendamento',
-          customClass: {
-            popup: 'swal2-popup-dark',
-            title: 'swal2-title-dark',
-            confirmButton: 'swal2-confirm-btn'
-          },
-          buttonsStyling: false
-        }).then((result) => {
-          if (result.isConfirmed) {
-            // Reiniciar fluxo se necessário
-            location.reload();
-          }
-        });
-      }
-    }
-
-    function irParaPasso(passo) {
-      passoAtual = passo;
-      const p1 = document.getElementById('passo1');
-      const p2 = document.getElementById('passo2');
-      const btnVoltar = document.getElementById('btnVoltar');
-      const titulo = document.getElementById('tituloPasso');
-
-      if (passo === 2) {
-        p1.classList.add('d-none');
-        p2.classList.remove('d-none');
-        btnVoltar.classList.remove('d-none');
-        titulo.innerText = 'Profissional, Data e Dados';
-        carregarHorarios();
-      } else {
-        p2.classList.add('d-none');
-        p1.classList.remove('d-none');
-        btnVoltar.classList.add('d-none');
-        titulo.innerText = 'Selecionar serviços';
-      }
-    }
-
-    function carregarHorarios() {
-      const horarios = ['09:00', '09:30', '10:00', '10:30', '11:00', '13:30', '14:00', '15:00', '16:00'];
-      const grid = document.getElementById('gridHorarios');
-      
-      grid.innerHTML = horarios.map(h => `
-        <div class="col">
-          <div class="time-slot ${horarioEscolhido === h ? 'selected' : ''}" onclick="selecionarHorario('${h}', this)">
-            ${h}
           </div>
+
+          <div class="d-flex flex-row flex-md-column align-items-center align-items-md-end justify-content-between w-100 w-md-auto border-top border-md-0 pt-3 pt-md-0" style="border-color: #2E2845 !important;">
+            <span class="fw-bold fs-5 mb-2" style="color: #A78BFA;">R$ ${a.preco}</span>
+            <div class="d-flex gap-2">
+              ${a.status !== 'Concluído' ? `<button class="btn btn-sm btn-outline-success" onclick="alterarStatus(${a.id}, 'Concluído')">Concluir</button>` : ''}
+              ${a.status !== 'Cancelado' ? `<button class="btn btn-sm btn-outline-danger" onclick="alterarStatus(${a.id}, 'Cancelado')">Cancelar</button>` : ''}
+              ${a.status !== 'Confirmado' ? `<button class="btn btn-sm btn-outline-primary" onclick="alterarStatus(${a.id}, 'Confirmado')">Reativar</button>` : ''}
+            </div>
+          </div>
+
         </div>
       `).join('');
     }
 
-    function selecionarHorario(hora, el) {
-      document.querySelectorAll('.time-slot').forEach(e => e.classList.remove('selected'));
-      el.classList.add('selected');
-      horarioEscolhido = hora;
+    function alterarStatus(id, novoStatus) {
+      const item = agendamentos.find(a => a.id === id);
+      if (item) {
+        item.status = novoStatus;
+        filtrarAgendamentos();
+      }
+    }
+
+    function atualizarMetricas() {
+      const agendados = agendamentos.filter(a => a.status === 'Confirmado').length;
+      const concluidos = agendamentos.filter(a => a.status === 'Concluído').length;
+      const cancelados = agendamentos.filter(a => a.status === 'Cancelado').length;
+      const faturamento = agendamentos.filter(a => a.status !== 'Cancelado').reduce((acc, a) => acc + a.preco, 0);
+
+      document.getElementById('totalAgendados').innerText = agendados;
+      document.getElementById('totalConcluidos').innerText = concluidos;
+      document.getElementById('totalCancelados').innerText = cancelados;
+      document.getElementById('faturamentoTotal').innerText = `R$ ${faturamento}`;
     }
   </script>
 </body>
