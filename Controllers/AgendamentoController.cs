@@ -1,7 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+// Ajuste os 'using' abaixo conforme as pastas do seu projeto
+using AgendamentoApi.Data;
+using AgendamentoApi.Models;
 
 namespace AgendamentoApi.Controllers
 {
@@ -9,67 +14,62 @@ namespace AgendamentoApi.Controllers
     [Route("api/[controller]")]
     public class AgendamentosController : ControllerBase
     {
-        // Lista simulada de agendamentos em memória (substituir por base de dados se usares Entity Framework)
-        private static readonly List<AgendamentoDto> Agendamentos = new()
+        private readonly AppDbContext _context;
+
+        public AgendamentosController(AppDbContext context)
         {
-            new AgendamentoDto {
-                Id = 1,
-                Barbeiro = "Lucas Silva",
-                ClienteNome = "João Silva",
-                ClienteTelefone = "(16) 99888-7766",
-                DataHora = DateTime.Today.AddHours(10),
-                Servicos = "Corte de cabelo + Barba",
-                TempoTotalMinutos = 60,
-                PrecoTotal = 60.00m,
-                Observacao = "Prefere degradê baixo"
-            },
-            new AgendamentoDto {
-                Id = 2,
-                Barbeiro = "Lucas Silva",
-                ClienteNome = "Carlos Eduardo",
-                ClienteTelefone = "(16) 99111-2233",
-                DataHora = DateTime.Today.AddHours(14),
-                Servicos = "Corte de cabelo",
-                TempoTotalMinutos = 30,
-                PrecoTotal = 35.00m,
-                Observacao = ""
-            },
-            new AgendamentoDto {
-                Id = 3,
-                Barbeiro = "Kauan Borsan",
-                ClienteNome = "Mateus Souza",
-                ClienteTelefone = "(16) 98877-6655",
-                DataHora = DateTime.Today.AddHours(11),
-                Servicos = "Barba desenhada",
-                TempoTotalMinutos = 30,
-                PrecoTotal = 25.00m,
-                Observacao = "Alergia a lâmina tradicional"
-            }
-        };
+            _context = context;
+        }
 
         // GET: api/agendamentos/barbeiro/Lucas Silva
         [HttpGet("barbeiro/{nomeBarbeiro}")]
-        public IActionResult GetPorBarbeiro(string nomeBarbeiro)
+        public async Task<IActionResult> GetPorBarbeiro(string nomeBarbeiro)
         {
-            var agendamentosBarbeiro = Agendamentos
-                .Where(a => a.Barbeiro.Equals(nomeBarbeiro, StringComparison.OrdinalIgnoreCase))
+            var agendamentosBarbeiro = await _context.Agendamentos
+                .Where(a => a.Barbeiro.ToLower() == nomeBarbeiro.ToLower())
                 .OrderBy(a => a.DataHora)
-                .ToList();
+                .ToListAsync();
 
             return Ok(agendamentosBarbeiro);
         }
+
+        // POST: api/agendamentos
+        [HttpPost]
+        public async Task<IActionResult> CriarAgendamento([FromBody] AgendamentoCriacaoDto dto)
+        {
+            if (dto == null)
+            {
+                return BadRequest("Dados de agendamento inválidos.");
+            }
+
+            var novoAgendamento = new Agendamento
+            {
+                ClienteNome = dto.NomeCliente,
+                ClienteTelefone = dto.TelCliente,
+                Barbeiro = dto.Barbeiro,
+                DataHora = dto.DataHora,
+                Servicos = string.Join(", ", dto.ServicosNomes),
+                PrecoTotal = dto.PrecoTotal,
+                Observacao = dto.Observacao ?? string.Empty,
+                Status = "Confirmado"
+            };
+
+            _context.Agendamentos.Add(novoAgendamento);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { mensagem = "Agendamento realizado com sucesso!", id = novoAgendamento.Id });
+        }
     }
 
-    public class AgendamentoDto
+    // DTO utilizado para receber as requisições POST do frontend (index.html)
+    public class AgendamentoCriacaoDto
     {
-        public int Id { get; set; }
+        public string NomeCliente { get; set; } = string.Empty;
+        public string TelCliente { get; set; } = string.Empty;
         public string Barbeiro { get; set; } = string.Empty;
-        public string ClienteNome { get; set; } = string.Empty;
-        public string ClienteTelefone { get; set; } = string.Empty;
         public DateTime DataHora { get; set; }
-        public string Servicos { get; set; } = string.Empty;
-        public int TempoTotalMinutos { get; set; }
+        public List<string> ServicosNomes { get; set; } = new();
         public decimal PrecoTotal { get; set; }
-        public string Observacao { get; set; } = string.Empty;
+        public string? Observacao { get; set; }
     }
 }

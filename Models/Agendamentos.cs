@@ -1,12 +1,15 @@
-namespace AgendamentoApi.Models;
-
-public class Agendamento
+namespace AgendamentoApi.Models
 {
-    public int Id { get; set; }
-    public int ClienteId { get; set; }
-    public Cliente? Cliente { get; set; }
-    public int ServicoId { get; set; }
-    public Servico? Servico { get; set; }
-    public DateTime DataHora { get; set; }
-    public string Status { get; set; } = "Confirmado"; // Confirmado, Cancelado, Concluido
+    public class Agendamento
+    {
+        public int Id { get; set; }
+        public string ClienteNome { get; set; } = string.Empty;
+        public string ClienteTelefone { get; set; } = string.Empty;
+        public string Barbeiro { get; set; } = string.Empty;
+        public DateTime DataHora { get; set; }
+        public string Servicos { get; set; } = string.Empty;
+        public decimal PrecoTotal { get; set; }
+        public string Status { get; set; } = "Confirmado";
+        public string? Observacao { get; set; }
+    }
 }

@@ -104,6 +104,24 @@
       border-radius: 16px;
       padding: 16px;
     }
+
+    /* Modal Dark SweetAlert */
+    .swal2-popup-dark {
+      background: #181528 !important;
+      border: 1px solid #2E2845 !important;
+      border-radius: 20px !important;
+      color: #FFFFFF !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+    .swal2-title-dark { color: #FFFFFF !important; }
+    .swal2-confirm-btn {
+      background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%) !important;
+      border-radius: 12px !important;
+      padding: 12px 28px !important;
+      font-weight: 600 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4) !important;
+    }
   </style>
 </head>
 <body class="py-4">
@@ -115,12 +133,16 @@
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3" style="border-bottom: 1px solid #2E2845;">
         <div>
           <h4 class="fw-bold mb-1 text-white">Painel do Barbeiro 💈</h4>
-          <p class="text-muted small mb-0">Gestão de agendamentos e faturamento em tempo real</p>
+          <p class="text-muted small mb-0">Agenda de: <strong id="nomeBarbeiroLogado" class="text-white">Carregando...</strong></p>
         </div>
         
-        <div class="d-flex align-items-center gap-2">
-          <label class="small text-muted text-nowrap">Data:</label>
-          <input type="date" id="filtroData" class="form-control custom-input" style="color-scheme: dark;" onchange="filtrarAgendamentos()">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-sm btn-outline-light" style="border-color: #3D355C; border-radius: 10px;" onclick="solicitarLogin(true)">🔄 Trocar Barbeiro</button>
+          
+          <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted text-nowrap">Data:</label>
+            <input type="date" id="filtroData" class="form-control custom-input" style="color-scheme: dark;" onchange="filtrarAgendamentos()">
+          </div>
         </div>
       </div>
 
@@ -167,18 +189,80 @@
   </div>
 
   <script>
+    // Sobrescreve o alert nativo do navegador para usar o SweetAlert2 estilizado
+window.alert = function (mensagem) {
+  Swal.fire({
+    title: 'Atenção',
+    text: mensagem,
+    icon: 'info',
+    customClass: {
+      popup: 'swal2-popup-dark',
+      title: 'swal2-title-dark',
+      confirmButton: 'swal2-confirm-btn'
+    },
+    buttonsStyling: false
+  });
+};
+    let barbeiroLogado = '';
+    let statusAtual = 'todos';
+
+    // Lista global de agendamentos
     let agendamentos = [
       { id: 1, horario: "09:00", cliente: "Matheus Santos", telefone: "(16) 99123-4567", servicos: "Corte masculino + Barba", barbeiro: "Kauan Borsan", preco: 60, status: "Confirmado", obs: "Prefere degradê baixo na máquina 1." },
       { id: 2, horario: "10:00", cliente: "Rodrigo Almeida", telefone: "(16) 99876-5432", servicos: "Corte mais hidratação", barbeiro: "Lucas Silva", preco: 50, status: "Concluído", obs: "" },
-      { id: 3, horario: "11:00", cliente: "Gabriel Costa", telefone: "(16) 99333-2211", servicos: "Corte de cabelo masculino", barbeiro: "Lucas Silva", preco: 35, status: "Confirmado", obs: "" }
+      { id: 3, horario: "11:00", cliente: "Gabriel Costa", telefone: "(16) 99333-2211", servicos: "Corte de cabelo masculino", barbeiro: "Lucas Silva", preco: 35, status: "Confirmado", obs: "" },
+      { id: 4, horario: "14:00", cliente: "Felipe Souza", telefone: "(16) 98888-1122", servicos: "Barba desenhada", barbeiro: "Kauan Borsan", preco: 25, status: "Confirmado", obs: "" }
     ];
-
-    let statusAtual = 'todos';
 
     window.onload = () => {
       document.getElementById('filtroData').value = new Date().toISOString().split('T')[0];
-      filtrarAgendamentos();
+      
+      // Verifica se já existe login salvo na sessão
+      const salvo = sessionStorage.getItem('barbeiroLogado');
+      if (salvo) {
+        barbeiroLogado = salvo;
+        iniciarPainel();
+      } else {
+        solicitarLogin();
+      }
     };
+
+    // Modal de Login / Seleção do Barbeiro
+    function solicitarLogin(forcar = false) {
+      Swal.fire({
+        title: '🔑 Acesso do Barbeiro',
+        html: `
+          <p class="small text-muted mb-3">Selecione o seu perfil para ver a sua agenda:</p>
+          <select id="swalSelectBarbeiro" class="form-select custom-input text-white">
+            <option value="Lucas Silva">Lucas Silva</option>
+            <option value="Kauan Borsan">Kauan Borsan</option>
+          </select>
+        `,
+        confirmButtonText: 'Acessar Agenda',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        customClass: {
+          popup: 'swal2-popup-dark',
+          title: 'swal2-title-dark',
+          confirmButton: 'swal2-confirm-btn'
+        },
+        buttonsStyling: false,
+        preConfirm: () => {
+          return document.getElementById('swalSelectBarbeiro').value;
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          barbeiroLogado = result.value;
+          sessionStorage.setItem('barbeiroLogado', barbeiroLogado);
+          iniciarPainel();
+        }
+      });
+    }
+
+    function iniciarPainel() {
+      document.getElementById('nomeBarbeiroLogado').innerText = barbeiroLogado;
+      filtrarAgendamentos();
+    }
 
     function filtrarStatus(status, btn) {
       document.querySelectorAll('.nav-pill-custom').forEach(b => b.classList.remove('active'));
@@ -188,7 +272,12 @@
     }
 
     function filtrarAgendamentos() {
-      const filtrados = agendamentos.filter(a => statusAtual === 'todos' || a.status === statusAtual);
+      // Filtra APENAS os agendamentos do barbeiro logado e pelo status selecionado
+      const filtrados = agendamentos.filter(a => 
+        a.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase() &&
+        (statusAtual === 'todos' || a.status === statusAtual)
+      );
+
       renderizarAgendamentos(filtrados);
       atualizarMetricas();
     }
@@ -197,7 +286,7 @@
       const container = document.getElementById('listaAgendamentos');
 
       if (lista.length === 0) {
-        container.innerHTML = '<p class="text-muted text-center py-4">Nenhum agendamento encontrado.</p>';
+        container.innerHTML = `<p class="text-muted text-center py-4">Nenhum agendamento encontrado para ${barbeiroLogado}.</p>`;
         return;
       }
 
@@ -212,7 +301,7 @@
                 <span class="badge-status status-${a.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}">${a.status}</span>
               </div>
               <p class="small text-muted mb-1"><strong>Serviço:</strong> ${a.servicos}</p>
-              <p class="small text-muted mb-1"><strong>Barbeiro:</strong> ${a.barbeiro} • <strong>Tel:</strong> ${a.telefone}</p>
+              <p class="small text-muted mb-1"><strong>Tel:</strong> ${a.telefone}</p>
               ${a.obs ? `<p class="small text-warning mb-0">💬 <em>"${a.obs}"</em></p>` : ''}
             </div>
           </div>
@@ -239,10 +328,13 @@
     }
 
     function atualizarMetricas() {
-      const agendados = agendamentos.filter(a => a.status === 'Confirmado').length;
-      const concluidos = agendamentos.filter(a => a.status === 'Concluído').length;
-      const cancelados = agendamentos.filter(a => a.status === 'Cancelado').length;
-      const faturamento = agendamentos.filter(a => a.status !== 'Cancelado').reduce((acc, a) => acc + a.preco, 0);
+      // Considera apenas a lista do barbeiro logado para recalcular o resumo
+      const listaDoBarbeiro = agendamentos.filter(a => a.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase());
+
+      const agendados = listaDoBarbeiro.filter(a => a.status === 'Confirmado').length;
+      const concluidos = listaDoBarbeiro.filter(a => a.status === 'Concluído').length;
+      const cancelados = listaDoBarbeiro.filter(a => a.status === 'Cancelado').length;
+      const faturamento = listaDoBarbeiro.filter(a => a.status !== 'Cancelado').reduce((acc, a) => acc + a.preco, 0);
 
       document.getElementById('totalAgendados').innerText = agendados;
       document.getElementById('totalConcluidos').innerText = concluidos;
