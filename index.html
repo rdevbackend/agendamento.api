@@ -168,6 +168,15 @@
       color: #FFFFFF !important;
       box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4) !important;
     }
+    .swal2-cancel-btn {
+      background: #231E38 !important;
+      border: 1px solid #332B52 !important;
+      border-radius: 12px !important;
+      padding: 12px 28px !important;
+      font-weight: 600 !important;
+      color: #A1A1AA !important;
+      margin-right: 8px !important;
+    }
   </style>
 </head>
 <body class="py-4">
@@ -286,6 +295,9 @@
   </div>
 
   <script>
+    // URL DA SUA API .NET (Ajuste a porta se a sua API usar outra porta no terminal)
+    const API_URL = 'http://localhost:5000/api/agendamentos'; 
+
     // FUNÇÃO PARA DISPARAR ALERTAS ESTILIZADOS
     function mostrarAlerta(titulo, texto, icone = 'warning') {
       Swal.fire({
@@ -419,7 +431,7 @@
       btn.classList.add('active');
     }
 
-    function avancarPasso() {
+    async function avancarPasso() {
       if (passoAtual === 1) {
         irParaPasso(2);
       } else if (passoAtual === 2) {
@@ -439,33 +451,73 @@
           return;
         }
 
-        const listaNomesServicos = selecionados.map(s => s.nome).join(', ');
-        const total = document.getElementById('totalPreco').innerText;
+        const listaNomesServicos = selecionados.map(s => s.nome);
+        const totalNum = selecionados.reduce((acc, curr) => acc + curr.preco, 0);
+
+        // Objeto DTO formatado para enviar via POST para a API
+        const agendamentoDto = {
+          nomeCliente: nome,
+          telCliente: tel,
+          barbeiro: barbeiro,
+          dataHora: `${data}T${horarioEscolhido}:00`,
+          servicosNomes: listaNomesServicos,
+          precoTotal: totalNum,
+          observacao: obs
+        };
 
         Swal.fire({
-          icon: 'success',
-          title: '✨ Agendamento Solicitado!',
+          icon: 'question',
+          title: '✨ Confirmar Agendamento?',
           html: `
             <div class="text-start fs-6 lh-base px-2">
               <p class="mb-1"><strong>Cliente:</strong> ${nome}</p>
               <p class="mb-1"><strong>Telefone:</strong> ${tel}</p>
               <p class="mb-1"><strong>Barbeiro:</strong> ${barbeiro}</p>
               <p class="mb-1"><strong>Data & Horário:</strong> ${data} às ${horarioEscolhido}</p>
-              <p class="mb-1"><strong>Serviços:</strong> ${listaNomesServicos}</p>
-              <p class="mb-2"><strong>Total:</strong> <span style="color: #A78BFA; font-weight: 700;">${total}</span></p>
+              <p class="mb-1"><strong>Serviços:</strong> ${listaNomesServicos.join(', ')}</p>
+              <p class="mb-2"><strong>Total:</strong> <span style="color: #A78BFA; font-weight: 700;">R$ ${totalNum}</span></p>
               ${obs ? `<p class="mb-0 text-warning small mt-2"><strong>Observações:</strong> "${obs}"</p>` : ''}
             </div>
           `,
+          showCancelButton: true,
           confirmButtonText: 'Confirmar Agendamento',
+          cancelButtonText: 'Cancelar',
           customClass: {
             popup: 'swal2-popup-dark',
             title: 'swal2-title-dark',
-            confirmButton: 'swal2-confirm-btn'
+            confirmButton: 'swal2-confirm-btn',
+            cancelButton: 'swal2-cancel-btn'
           },
           buttonsStyling: false
-        }).then((result) => {
+        }).then(async (result) => {
           if (result.isConfirmed) {
-            location.reload();
+            try {
+              // Faz a requisição POST para a sua API C#
+              const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(agendamentoDto)
+              });
+
+              if (response.ok) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Agendado com sucesso!',
+                  text: 'O seu agendamento foi salvo no sistema.',
+                  customClass: { popup: 'swal2-popup-dark', title: 'swal2-title-dark', confirmButton: 'swal2-confirm-btn' },
+                  buttonsStyling: false
+                }).then(() => {
+                  location.reload();
+                });
+              } else {
+                mostrarAlerta('Erro', 'Ocorreu um erro na API ao tentar salvar o agendamento.', 'error');
+              }
+            } catch (error) {
+              console.error('Erro na requisição:', error);
+              mostrarAlerta('Erro de Conexão', 'Não foi possível conectar com o servidor da API. Verifique se o backend está ligado.', 'error');
+            }
           }
         });
       }

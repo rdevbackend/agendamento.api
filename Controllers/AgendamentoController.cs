@@ -39,25 +39,49 @@ namespace AgendamentoApi.Controllers
         {
             if (dto == null)
             {
-                return BadRequest("Dados de agendamento inválidos.");
+                return BadRequest(new { erro = "Dados de agendamento inválidos." });
             }
 
-            var novoAgendamento = new Agendamento
+            try
             {
-                ClienteNome = dto.NomeCliente,
-                ClienteTelefone = dto.TelCliente,
-                Barbeiro = dto.Barbeiro,
-                DataHora = dto.DataHora,
-                Servicos = string.Join(", ", dto.ServicosNomes),
-                PrecoTotal = dto.PrecoTotal,
-                Observacao = dto.Observacao ?? string.Empty,
-                Status = "Confirmado"
-            };
+                // Correção essencial para PostgreSQL: especifica o tipo da data como UTC
+                var dataHoraUtc = DateTime.SpecifyKind(dto.DataHora, DateTimeKind.Utc);
 
-            _context.Agendamentos.Add(novoAgendamento);
-            await _context.SaveChangesAsync();
+                var novoAgendamento = new Agendamento
+                {
+                    ClienteNome = dto.NomeCliente ?? string.Empty,
+                    ClienteTelefone = dto.TelCliente ?? string.Empty,
+                    Barbeiro = dto.Barbeiro ?? string.Empty,
+                    DataHora = dataHoraUtc,
+                    Servicos = dto.ServicosNomes != null && dto.ServicosNomes.Any() 
+                                ? string.Join(", ", dto.ServicosNomes) 
+                                : "Nenhum serviço selecionado",
+                    PrecoTotal = dto.PrecoTotal,
+                    Observacao = dto.Observacao ?? string.Empty,
+                    Status = "Confirmado"
+                };
 
-            return Ok(new { mensagem = "Agendamento realizado com sucesso!", id = novoAgendamento.Id });
+                _context.Agendamentos.Add(novoAgendamento);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensagem = "Agendamento realizado com sucesso!", id = novoAgendamento.Id });
+            }
+            catch (Exception ex)
+            {
+                // Exibe os detalhes da exceção no terminal do dotnet run
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"\n[ERRO AO SALVAR AGENDAMENTO]: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"[DETALHE DO BANCO]: {ex.InnerException.Message}");
+                }
+                Console.ResetColor();
+
+                return StatusCode(500, new { 
+                    erro = "Ocorreu um erro interno ao salvar na base de dados.",
+                    detalhes = ex.InnerException != null ? ex.InnerException.Message : ex.Message 
+                });
+            }
         }
     }
 

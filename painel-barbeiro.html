@@ -141,7 +141,7 @@
           
           <div class="d-flex align-items-center gap-2">
             <label class="small text-muted text-nowrap">Data:</label>
-            <input type="date" id="filtroData" class="form-control custom-input" style="color-scheme: dark;" onchange="filtrarAgendamentos()">
+            <input type="date" id="filtroData" class="form-control custom-input" style="color-scheme: dark;" onchange="carregarAgendamentosDaApi()">
           </div>
         </div>
       </div>
@@ -189,35 +189,16 @@
   </div>
 
   <script>
-    // Sobrescreve o alert nativo do navegador para usar o SweetAlert2 estilizado
-window.alert = function (mensagem) {
-  Swal.fire({
-    title: 'Atenção',
-    text: mensagem,
-    icon: 'info',
-    customClass: {
-      popup: 'swal2-popup-dark',
-      title: 'swal2-title-dark',
-      confirmButton: 'swal2-confirm-btn'
-    },
-    buttonsStyling: false
-  });
-};
+    // URL base da API .NET rodando na porta 5021
+    const API_URL = 'http://localhost:5021/api';
+
     let barbeiroLogado = '';
     let statusAtual = 'todos';
-
-    // Lista global de agendamentos
-    let agendamentos = [
-      { id: 1, horario: "09:00", cliente: "Matheus Santos", telefone: "(16) 99123-4567", servicos: "Corte masculino + Barba", barbeiro: "Kauan Borsan", preco: 60, status: "Confirmado", obs: "Prefere degradê baixo na máquina 1." },
-      { id: 2, horario: "10:00", cliente: "Rodrigo Almeida", telefone: "(16) 99876-5432", servicos: "Corte mais hidratação", barbeiro: "Lucas Silva", preco: 50, status: "Concluído", obs: "" },
-      { id: 3, horario: "11:00", cliente: "Gabriel Costa", telefone: "(16) 99333-2211", servicos: "Corte de cabelo masculino", barbeiro: "Lucas Silva", preco: 35, status: "Confirmado", obs: "" },
-      { id: 4, horario: "14:00", cliente: "Felipe Souza", telefone: "(16) 98888-1122", servicos: "Barba desenhada", barbeiro: "Kauan Borsan", preco: 25, status: "Confirmado", obs: "" }
-    ];
+    let agendamentos = [];
 
     window.onload = () => {
       document.getElementById('filtroData').value = new Date().toISOString().split('T')[0];
       
-      // Verifica se já existe login salvo na sessão
       const salvo = sessionStorage.getItem('barbeiroLogado');
       if (salvo) {
         barbeiroLogado = salvo;
@@ -227,15 +208,14 @@ window.alert = function (mensagem) {
       }
     };
 
-    // Modal de Login / Seleção do Barbeiro
     function solicitarLogin(forcar = false) {
       Swal.fire({
         title: '🔑 Acesso do Barbeiro',
         html: `
           <p class="small text-muted mb-3">Selecione o seu perfil para ver a sua agenda:</p>
           <select id="swalSelectBarbeiro" class="form-select custom-input text-white">
-            <option value="Lucas Silva">Lucas Silva</option>
             <option value="Kauan Borsan">Kauan Borsan</option>
+            <option value="Lucas Silva">Lucas Silva</option>
           </select>
         `,
         confirmButtonText: 'Acessar Agenda',
@@ -261,7 +241,45 @@ window.alert = function (mensagem) {
 
     function iniciarPainel() {
       document.getElementById('nomeBarbeiroLogado').innerText = barbeiroLogado;
-      filtrarAgendamentos();
+      carregarAgendamentosDaApi();
+    }
+
+    // Busca os dados diretamente da API .NET na porta 5021
+    async function carregarAgendamentosDaApi() {
+      const container = document.getElementById('listaAgendamentos');
+      container.innerHTML = `<p class="text-muted text-center py-4">Carregando agendamentos do servidor...</p>`;
+
+      try {
+        const resposta = await fetch(`${API_URL}/agendamentos/barbeiro/${encodeURIComponent(barbeiroLogado)}`);
+        
+        if (!resposta.ok) {
+          throw new Error("Erro na comunicação com a API.");
+        }
+
+        const dados = await resposta.json();
+
+        // Mapeamento dos campos do banco de dados
+        agendamentos = dados.map(a => {
+          const dataObj = new Date(a.dataHora);
+          return {
+            id: a.id,
+            horario: dataObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            cliente: a.clienteNome,
+            telefone: a.clienteTelefone,
+            servicos: a.servicos,
+            barbeiro: a.barbeiro,
+            preco: a.precoTotal,
+            status: a.status || 'Confirmado',
+            obs: a.observacao || '',
+            dataCompleta: dataObj.toISOString().split('T')[0]
+          };
+        });
+
+        filtrarAgendamentos();
+      } catch (erro) {
+        console.error("Erro na comunicação com a API:", erro);
+        container.innerHTML = `<p class="text-danger text-center py-4">Não foi possível carregar os agendamentos do servidor (http://localhost:5021).</p>`;
+      }
     }
 
     function filtrarStatus(status, btn) {
@@ -272,11 +290,15 @@ window.alert = function (mensagem) {
     }
 
     function filtrarAgendamentos() {
-      // Filtra APENAS os agendamentos do barbeiro logado e pelo status selecionado
-      const filtrados = agendamentos.filter(a => 
-        a.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase() &&
-        (statusAtual === 'todos' || a.status === statusAtual)
-      );
+      const dataSelecionada = document.getElementById('filtroData').value;
+
+      const filtrados = agendamentos.filter(a => {
+        const mesmoBarbeiro = a.barbeiro.toLowerCase().trim() === barbeiroLogado.toLowerCase().trim();
+        const mesmaData = !dataSelecionada || a.dataCompleta === dataSelecionada;
+        const mesmoStatus = statusAtual === 'todos' || a.status === statusAtual;
+
+        return mesmoBarbeiro && mesmaData && mesmoStatus;
+      });
 
       renderizarAgendamentos(filtrados);
       atualizarMetricas();
@@ -319,22 +341,37 @@ window.alert = function (mensagem) {
       `).join('');
     }
 
-    function alterarStatus(id, novoStatus) {
-      const item = agendamentos.find(a => a.id === id);
-      if (item) {
-        item.status = novoStatus;
+    async function alterarStatus(id, novoStatus) {
+      try {
+        await fetch(`${API_URL}/agendamentos/${id}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: novoStatus })
+        });
+
+        const item = agendamentos.find(a => a.id === id);
+        if (item) item.status = novoStatus;
+        filtrarAgendamentos();
+      } catch (erro) {
+        console.error("Erro ao alterar status:", erro);
+        const item = agendamentos.find(a => a.id === id);
+        if (item) item.status = novoStatus;
         filtrarAgendamentos();
       }
     }
 
     function atualizarMetricas() {
-      // Considera apenas a lista do barbeiro logado para recalcular o resumo
-      const listaDoBarbeiro = agendamentos.filter(a => a.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase());
+      const dataSelecionada = document.getElementById('filtroData').value;
+      
+      const listaDoBarbeiro = agendamentos.filter(a => 
+        a.barbeiro.toLowerCase().trim() === barbeiroLogado.toLowerCase().trim() &&
+        (!dataSelecionada || a.dataCompleta === dataSelecionada)
+      );
 
       const agendados = listaDoBarbeiro.filter(a => a.status === 'Confirmado').length;
       const concluidos = listaDoBarbeiro.filter(a => a.status === 'Concluído').length;
       const cancelados = listaDoBarbeiro.filter(a => a.status === 'Cancelado').length;
-      const faturamento = listaDoBarbeiro.filter(a => a.status !== 'Cancelado').reduce((acc, a) => acc + a.preco, 0);
+      const faturamento = listaDoBarbeiro.filter(a => a.status !== 'Cancelado').reduce((acc, a) => acc + Number(a.preco), 0);
 
       document.getElementById('totalAgendados').innerText = agendados;
       document.getElementById('totalConcluidos').innerText = concluidos;

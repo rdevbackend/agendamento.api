@@ -26,6 +26,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureDeleted(); // Apaga a base de dados AgendamentoDb antiga
+    db.Database.EnsureCreated(); // Cria a base de dados AgendamentoDb atualizada com a coluna Barbeiro
+}
+
 
 // 4. Popula os dados iniciais de serviços no banco (se estiver vazio)
 using (var scope = app.Services.CreateScope())
@@ -52,8 +59,8 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Agendamento API v1");
 });
 
-// 6. Ativa a política de CORS
-app.UseCors("AllowFrontend");
+
+app.UseCors("permitir tudo");
 
 app.MapControllers();
 
