@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-// Ajuste os 'using' abaixo conforme as pastas do seu projeto
 using AgendamentoApi.Data;
 using AgendamentoApi.Models;
 
@@ -19,6 +18,17 @@ namespace AgendamentoApi.Controllers
         public AgendamentosController(AppDbContext context)
         {
             _context = context;
+        }
+
+        // GET: api/agendamentos (Busca TODOS os agendamentos)
+        [HttpGet]
+        public async Task<IActionResult> ObterTodos()
+        {
+            var agendamentos = await _context.Agendamentos
+                .OrderBy(a => a.DataHora)
+                .ToListAsync();
+
+            return Ok(agendamentos);
         }
 
         // GET: api/agendamentos/barbeiro/Lucas Silva
@@ -44,7 +54,6 @@ namespace AgendamentoApi.Controllers
 
             try
             {
-                // Correção essencial para PostgreSQL: especifica o tipo da data como UTC
                 var dataHoraUtc = DateTime.SpecifyKind(dto.DataHora, DateTimeKind.Utc);
 
                 var novoAgendamento = new Agendamento
@@ -68,7 +77,6 @@ namespace AgendamentoApi.Controllers
             }
             catch (Exception ex)
             {
-                // Exibe os detalhes da exceção no terminal do dotnet run
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"\n[ERRO AO SALVAR AGENDAMENTO]: {ex.Message}");
                 if (ex.InnerException != null)
@@ -83,6 +91,22 @@ namespace AgendamentoApi.Controllers
                 });
             }
         }
+
+        // PATCH: api/agendamentos/5/status (Atualizar o status do agendamento)
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> AtualizarStatus(int id, [FromBody] StatusDto dto)
+        {
+            var agendamento = await _context.Agendamentos.FindAsync(id);
+            if (agendamento == null)
+            {
+                return NotFound(new { erro = "Agendamento não encontrado." });
+            }
+
+            agendamento.Status = dto.Status;
+            await _context.SaveChangesAsync();
+
+            return Ok(agendamento);
+        }
     }
 
     // DTO utilizado para receber as requisições POST do frontend (index.html)
@@ -95,5 +119,11 @@ namespace AgendamentoApi.Controllers
         public List<string> ServicosNomes { get; set; } = new();
         public decimal PrecoTotal { get; set; }
         public string? Observacao { get; set; }
+    }
+
+    // DTO para atualizar status
+    public class StatusDto
+    {
+        public string Status { get; set; } = string.Empty;
     }
 }

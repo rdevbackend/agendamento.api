@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel do Barbeiro - Borsan's</title>
+  <title>Painel do Barbeiro</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- SweetAlert2 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -23,9 +22,7 @@
       min-height: 100vh;
     }
 
-    .text-muted {
-      color: #A1A1AA !important;
-    }
+    .text-muted { color: #A1A1AA !important; }
 
     .main-card {
       background: linear-gradient(180deg, #181528 0%, #0F0D1B 100%);
@@ -105,7 +102,6 @@
       padding: 16px;
     }
 
-    /* Modal Dark SweetAlert */
     .swal2-popup-dark {
       background: #181528 !important;
       border: 1px solid #2E2845 !important;
@@ -129,7 +125,7 @@
   <div class="container" style="max-width: 1100px;">
     <div class="main-card p-4 p-md-5">
       
-      <!-- Cabeçalho do Painel do Barbeiro -->
+      <!-- Cabeçalho -->
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3" style="border-bottom: 1px solid #2E2845;">
         <div>
           <h4 class="fw-bold mb-1 text-white">Painel do Barbeiro 💈</h4>
@@ -146,7 +142,7 @@
         </div>
       </div>
 
-      <!-- Resumo do Dia -->
+      <!-- Resumo de Métricas -->
       <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
           <div class="summary-box text-center">
@@ -169,7 +165,7 @@
         <div class="col-6 col-md-3">
           <div class="summary-box text-center">
             <span class="text-muted small d-block mb-1">Faturamento</span>
-            <h4 class="fw-bold mb-0" style="color: #A78BFA;" id="faturamentoTotal">R$ 0</h4>
+            <h4 class="fw-bold mb-0" style="color: #A78BFA;" id="faturamentoTotal">R$ 0,00</h4>
           </div>
         </div>
       </div>
@@ -182,15 +178,15 @@
         <button class="nav-pill-custom" onclick="filtrarStatus('Cancelado', this)">Cancelados</button>
       </div>
 
-      <!-- Lista de Agendamentos -->
+      <!-- Agendamentos -->
       <div id="listaAgendamentos" class="d-flex flex-column gap-3"></div>
 
     </div>
   </div>
 
   <script>
-    // URL base da API .NET rodando na porta 5021
-    const API_URL = 'http://localhost:5021/api';
+    // URL base do Ngrok configurada corretamente
+    const API_URL = 'https://footer-chowtime-outnumber.ngrok-free.dev/api';
 
     let barbeiroLogado = '';
     let statusAtual = 'todos';
@@ -200,7 +196,7 @@
       document.getElementById('filtroData').value = new Date().toISOString().split('T')[0];
       
       const salvo = sessionStorage.getItem('barbeiroLogado');
-      if (salvo) {
+      if (salvo && (salvo === 'Lucas Silva' || salvo === 'Alexandre')) {
         barbeiroLogado = salvo;
         iniciarPainel();
       } else {
@@ -212,10 +208,10 @@
       Swal.fire({
         title: '🔑 Acesso do Barbeiro',
         html: `
-          <p class="small text-muted mb-3">Selecione o seu perfil para ver a sua agenda:</p>
+          <p class="small text-muted mb-3">Selecione seu perfil:</p>
           <select id="swalSelectBarbeiro" class="form-select custom-input text-white">
-            <option value="Kauan Borsan">Kauan Borsan</option>
             <option value="Lucas Silva">Lucas Silva</option>
+            <option value="Alexandre">Alexandre</option>
           </select>
         `,
         confirmButtonText: 'Acessar Agenda',
@@ -227,9 +223,7 @@
           confirmButton: 'swal2-confirm-btn'
         },
         buttonsStyling: false,
-        preConfirm: () => {
-          return document.getElementById('swalSelectBarbeiro').value;
-        }
+        preConfirm: () => document.getElementById('swalSelectBarbeiro').value
       }).then((result) => {
         if (result.isConfirmed) {
           barbeiroLogado = result.value;
@@ -244,41 +238,54 @@
       carregarAgendamentosDaApi();
     }
 
-    // Busca os dados diretamente da API .NET na porta 5021
     async function carregarAgendamentosDaApi() {
       const container = document.getElementById('listaAgendamentos');
       container.innerHTML = `<p class="text-muted text-center py-4">Carregando agendamentos do servidor...</p>`;
 
       try {
-        const resposta = await fetch(`${API_URL}/agendamentos/barbeiro/${encodeURIComponent(barbeiroLogado)}`);
+        // Adicionada a flag 'ngrok-skip-browser-warning' para evitar a página intermediária do ngrok
+        const resposta = await fetch(`${API_URL}/agendamentos`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true'
+          }
+        });
         
-        if (!resposta.ok) {
-          throw new Error("Erro na comunicação com a API.");
-        }
+        if (!resposta.ok) throw new Error(`Status ${resposta.status}`);
 
         const dados = await resposta.json();
 
-        // Mapeamento dos campos do banco de dados
         agendamentos = dados.map(a => {
-          const dataObj = new Date(a.dataHora);
+          const rawData = a.dataHora || a.DataHora;
+          const dataObj = rawData ? new Date(rawData) : new Date();
+
+          const ano = dataObj.getFullYear();
+          const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
+          const dia = String(dataObj.getDate()).padStart(2, '0');
+          const dataFormatada = `${ano}-${mes}-${dia}`;
+
+          let servicoNome = a.servicos || a.Servicos || a.servico || a.Servico;
+          if (!servicoNome || servicoNome.trim() === '') {
+            servicoNome = 'Serviço não informado';
+          }
+
           return {
-            id: a.id,
+            id: a.id || a.Id,
             horario: dataObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            cliente: a.clienteNome,
-            telefone: a.clienteTelefone,
-            servicos: a.servicos,
-            barbeiro: a.barbeiro,
-            preco: a.precoTotal,
-            status: a.status || 'Confirmado',
-            obs: a.observacao || '',
-            dataCompleta: dataObj.toISOString().split('T')[0]
+            cliente: a.clienteNome || a.ClienteNome || 'Cliente',
+            telefone: a.clienteTelefone || a.ClienteTelefone || '',
+            servicos: servicoNome,
+            barbeiro: a.barbeiro || a.Barbeiro || '',
+            preco: parseFloat(a.precoTotal || a.PrecoTotal || 0),
+            status: a.status || a.Status || 'Confirmado',
+            obs: a.observacao || a.Observacao || '',
+            dataCompleta: dataFormatada
           };
         });
 
         filtrarAgendamentos();
       } catch (erro) {
-        console.error("Erro na comunicação com a API:", erro);
-        container.innerHTML = `<p class="text-danger text-center py-4">Não foi possível carregar os agendamentos do servidor (http://localhost:5021).</p>`;
+        console.error("Erro no carregamento:", erro);
+        container.innerHTML = `<p class="text-danger text-center py-4">Erro ao carregar dados da API (404 / Sem resposta). Verifique se o controller no C# está mapeado com [Route("api/[controller]")].</p>`;
       }
     }
 
@@ -308,76 +315,97 @@
       const container = document.getElementById('listaAgendamentos');
 
       if (lista.length === 0) {
-        container.innerHTML = `<p class="text-muted text-center py-4">Nenhum agendamento encontrado para ${barbeiroLogado}.</p>`;
+        container.innerHTML = `<p class="text-muted text-center py-5 mb-0">Nenhum agendamento encontrado para ${barbeiroLogado} nesta data.</p>`;
         return;
       }
 
-      container.innerHTML = lista.map(a => `
-        <div class="appointment-card d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
-          
-          <div class="d-flex align-items-start gap-3">
-            <span class="badge-time">${a.horario}</span>
-            <div>
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <h6 class="fw-bold mb-0 text-white">${a.cliente}</h6>
-                <span class="badge-status status-${a.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}">${a.status}</span>
+      container.innerHTML = lista.map(a => {
+        let classeStatus = 'status-confirmado';
+        if (a.status === 'Concluído') classeStatus = 'status-concluido';
+        if (a.status === 'Cancelado') classeStatus = 'status-cancelado';
+
+        const telLimpo = a.telefone ? a.telefone.replace(/\D/g, '') : '';
+
+        return `
+          <div class="appointment-card d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <span class="badge-time">${a.horario}</span>
+              <div>
+                <h6 class="fw-bold mb-1 text-white">${a.cliente}</h6>
+                <small class="text-muted d-block">${a.servicos} • <span style="color: #A78BFA; font-weight: 600;">R$ ${a.preco.toFixed(2)}</span></small>
+                
+                ${telLimpo ? `
+                  <small class="d-block mt-1">
+                    <a href="https://wa.me/55${telLimpo}" target="_blank" class="text-decoration-none fw-semibold" style="color: #25D366; font-size: 0.85rem;">
+                      📱 WhatsApp: ${a.telefone}
+                    </a>
+                  </small>
+                ` : '<small class="text-muted d-block mt-1">📱 Telefone não informado</small>'}
+
+                ${a.obs ? `<div class="small text-warning mt-1">💬 "${a.obs}"</div>` : ''}
               </div>
-              <p class="small text-muted mb-1"><strong>Serviço:</strong> ${a.servicos}</p>
-              <p class="small text-muted mb-1"><strong>Tel:</strong> ${a.telefone}</p>
-              ${a.obs ? `<p class="small text-warning mb-0">💬 <em>"${a.obs}"</em></p>` : ''}
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between justify-content-md-end gap-3">
+              <span class="badge-status ${classeStatus}">${a.status}</span>
+              
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-light dropdown-toggle" style="border-color: #3D355C; border-radius: 10px;" type="button" data-bs-toggle="dropdown">
+                  Ações
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                  <li><a class="dropdown-item" href="#" onclick="alterarStatus(${a.id}, 'Concluído')">Mudar para Concluído</a></li>
+                  <li><a class="dropdown-item" href="#" onclick="alterarStatus(${a.id}, 'Confirmado')">Mudar para Confirmado</a></li>
+                  <li><a class="dropdown-item text-danger" href="#" onclick="alterarStatus(${a.id}, 'Cancelado')">Mudar para Cancelado</a></li>
+                </ul>
+              </div>
             </div>
           </div>
+        `;
+      }).join('');
+    }
 
-          <div class="d-flex flex-row flex-md-column align-items-center align-items-md-end justify-content-between w-100 w-md-auto border-top border-md-0 pt-3 pt-md-0" style="border-color: #2E2845 !important;">
-            <span class="fw-bold fs-5 mb-2" style="color: #A78BFA;">R$ ${a.preco}</span>
-            <div class="d-flex gap-2">
-              ${a.status !== 'Concluído' ? `<button class="btn btn-sm btn-outline-success" onclick="alterarStatus(${a.id}, 'Concluído')">Concluir</button>` : ''}
-              ${a.status !== 'Cancelado' ? `<button class="btn btn-sm btn-outline-danger" onclick="alterarStatus(${a.id}, 'Cancelado')">Cancelar</button>` : ''}
-              ${a.status !== 'Confirmado' ? `<button class="btn btn-sm btn-outline-primary" onclick="alterarStatus(${a.id}, 'Confirmado')">Reativar</button>` : ''}
-            </div>
-          </div>
+    function atualizarMetricas() {
+      const dataSelecionada = document.getElementById('filtroData').value;
+      const doDia = agendamentos.filter(a => a.barbeiro.toLowerCase().trim() === barbeiroLogado.toLowerCase().trim() && a.dataCompleta === dataSelecionada);
 
-        </div>
-      `).join('');
+      const confirmados = doDia.filter(a => a.status === 'Confirmado').length;
+      const concluidos = doDia.filter(a => a.status === 'Concluído').length;
+      const cancelados = doDia.filter(a => a.status === 'Cancelado').length;
+      
+      const totalFaturamento = doDia.filter(a => a.status === 'Concluído' || a.status === 'Confirmado').reduce((acc, curr) => acc + curr.preco, 0);
+
+      document.getElementById('totalAgendados').innerText = confirmados;
+      document.getElementById('totalConcluidos').innerText = concluidos;
+      document.getElementById('totalCancelados').innerText = cancelados;
+      document.getElementById('faturamentoTotal').innerText = `R$ ${totalFaturamento.toFixed(2)}`;
     }
 
     async function alterarStatus(id, novoStatus) {
       try {
-        await fetch(`${API_URL}/agendamentos/${id}/status`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+        const resposta = await fetch(`${API_URL}/agendamentos/${id}/status`, {
+          method: 'PATCH',
+          headers: { 
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+          },
           body: JSON.stringify({ status: novoStatus })
         });
+
+        if (!resposta.ok) throw new Error('Falha na atualização');
 
         const item = agendamentos.find(a => a.id === id);
         if (item) item.status = novoStatus;
         filtrarAgendamentos();
       } catch (erro) {
-        console.error("Erro ao alterar status:", erro);
+        console.error("Erro ao atualizar status:", erro);
         const item = agendamentos.find(a => a.id === id);
         if (item) item.status = novoStatus;
         filtrarAgendamentos();
       }
     }
-
-    function atualizarMetricas() {
-      const dataSelecionada = document.getElementById('filtroData').value;
-      
-      const listaDoBarbeiro = agendamentos.filter(a => 
-        a.barbeiro.toLowerCase().trim() === barbeiroLogado.toLowerCase().trim() &&
-        (!dataSelecionada || a.dataCompleta === dataSelecionada)
-      );
-
-      const agendados = listaDoBarbeiro.filter(a => a.status === 'Confirmado').length;
-      const concluidos = listaDoBarbeiro.filter(a => a.status === 'Concluído').length;
-      const cancelados = listaDoBarbeiro.filter(a => a.status === 'Cancelado').length;
-      const faturamento = listaDoBarbeiro.filter(a => a.status !== 'Cancelado').reduce((acc, a) => acc + Number(a.preco), 0);
-
-      document.getElementById('totalAgendados').innerText = agendados;
-      document.getElementById('totalConcluidos').innerText = concluidos;
-      document.getElementById('totalCancelados').innerText = cancelados;
-      document.getElementById('faturamentoTotal').innerText = `R$ ${faturamento}`;
-    }
   </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
