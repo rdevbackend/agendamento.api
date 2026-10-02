@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- SweetAlert2 (Notificações Estilizadas) -->
+  <!-- SweetAlert2 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -23,9 +23,7 @@
       min-height: 100vh;
     }
 
-    .text-muted {
-      color: #A1A1AA !important;
-    }
+    .text-muted { color: #A1A1AA !important; }
 
     .main-card {
       background: linear-gradient(180deg, #181528 0%, #0F0D1B 100%);
@@ -47,8 +45,31 @@
       border-color: #8B5CF6;
       box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
     }
-    .custom-input::placeholder {
+    .custom-input::placeholder { color: #A1A1AA; }
+
+    /* Barra de Indicador dos Passos (Divisões Visíveis) */
+    .steps-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+    .step-pill {
+      flex: 1;
+      background-color: #1A162B;
+      border: 1px solid #2E2845;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
       color: #A1A1AA;
+      transition: all 0.3s;
+    }
+    .step-pill.active {
+      background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+      color: #FFFFFF;
+      border-color: #A78BFA;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
     }
 
     .nav-pill-custom {
@@ -146,7 +167,6 @@
       border-color: #A78BFA;
     }
 
-    /* Estilo do SweetAlert2 */
     .swal2-popup-dark {
       background: #181528 !important;
       border: 1px solid #2E2845 !important;
@@ -154,9 +174,7 @@
       color: #FFFFFF !important;
       font-family: 'Inter', sans-serif !important;
     }
-    .swal2-title-dark {
-      color: #FFFFFF !important;
-    }
+    .swal2-title-dark { color: #FFFFFF !important; }
     .swal2-confirm-btn {
       background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%) !important;
       border-radius: 12px !important;
@@ -181,18 +199,25 @@
   <div class="container" style="max-width: 1100px;">
     <div class="main-card p-4 p-md-5">
       
+      <!-- Indicador das Divisões de Etapas -->
+      <div class="steps-container">
+        <div class="step-pill active" id="pill-passo1">1. Serviços</div>
+        <div class="step-pill" id="pill-passo2">2. Data & Horário</div>
+        <div class="step-pill" id="pill-passo3">3. Seus Dados</div>
+      </div>
+
       <!-- Cabeçalho -->
       <div class="d-flex align-items-center justify-content-between mb-4">
         <div class="d-flex align-items-center gap-3">
-          <button id="btnVoltar" class="btn btn-outline-light rounded-circle p-2 d-none" style="border-color: #3D355C; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" onclick="irParaPasso(1)">←</button>
-          <h4 class="fw-bold mb-0 text-white" id="tituloPasso">Selecionar serviços</h4>
+          <button id="btnVoltar" class="btn btn-outline-light rounded-circle p-2 d-none" style="border-color: #3D355C; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" onclick="voltarPasso()">←</button>
+          <h4 class="fw-bold mb-0 text-white" id="tituloPasso">Escolha os serviços</h4>
         </div>
       </div>
 
       <div class="row g-4">
         <div class="col-lg-7">
           
-          <!-- PASSO 1 -->
+          <!-- DIVISÃO 1: SERVIÇOS -->
           <div id="passo1">
             <div class="mb-3">
               <input type="text" id="inputBusca" class="form-control custom-input" placeholder="🔍 Buscar serviço (ex: corte, barba)..." oninput="filtrarServicos()">
@@ -209,13 +234,11 @@
             <div id="listaServicos" class="d-flex flex-column gap-3"></div>
           </div>
 
-          <!-- PASSO 2 -->
+          <!-- DIVISÃO 2: PROFISSIONAL, DATA E HORÁRIO -->
           <div id="passo2" class="d-none">
-            
             <div class="mb-4">
               <label class="fw-bold mb-2 text-white">Escolha o Profissional</label>
               <select id="selectBarbeiro" class="form-select custom-input">
-                <option value="Sem preferência">Sem preferência (Qualquer barbeiro disponível)</option>
                 <option value="Alexandre">Alexandre</option>
                 <option value="Lucas Silva">Lucas Silva</option>
               </select>
@@ -230,26 +253,26 @@
               <label class="fw-bold mb-2 text-white">Escolha um horário</label>
               <div id="gridHorarios" class="row row-cols-2 row-cols-md-3 g-2"></div>
             </div>
+          </div>
 
-            <div class="border-top pt-4 mt-4" style="border-color: #2E2845 !important;">
-              <h6 class="fw-bold mb-3 text-white">Seus dados para agendamento</h6>
-              
-              <div class="mb-3">
-                <label class="small text-muted mb-1">Nome completo</label>
-                <input type="text" id="nomeCliente" class="form-control custom-input" placeholder="Digite seu nome">
-              </div>
-
-              <div class="mb-3">
-                <label class="small text-muted mb-1">WhatsApp / Celular</label>
-                <input type="text" id="telCliente" class="form-control custom-input" placeholder="(00) 00000-0000" maxlength="15" oninput="aplicarMascaraTelefone(this)">
-              </div>
-
-              <div class="mb-3">
-                <label class="small text-muted mb-1">Observações (opcional)</label>
-                <textarea id="obsCliente" class="form-control custom-input" rows="2" placeholder="Ex: Tenho alergia a tal produto, prefiro degradê baixo..."></textarea>
-              </div>
+          <!-- DIVISÃO 3: DADOS DO CLIENTE -->
+          <div id="passo3" class="d-none">
+            <h6 class="fw-bold mb-3 text-white">Preencha suas informações</h6>
+            
+            <div class="mb-3">
+              <label class="small text-muted mb-1">Nome completo *</label>
+              <input type="text" id="nomeCliente" class="form-control custom-input" placeholder="Digite seu nome">
             </div>
 
+            <div class="mb-3">
+              <label class="small text-muted mb-1">WhatsApp / Celular *</label>
+              <input type="text" id="telCliente" class="form-control custom-input" placeholder="(00) 00000-0000" maxlength="15" oninput="aplicarMascaraTelefone(this)">
+            </div>
+
+            <div class="mb-3">
+              <label class="small text-muted mb-1">Observações (opcional)</label>
+              <textarea id="obsCliente" class="form-control custom-input" rows="3" placeholder="Ex: Alergia a navalha, corte baixo..."></textarea>
+            </div>
           </div>
 
         </div>
@@ -263,7 +286,7 @@
                 💈
               </div>
               <div>
-                <h6 class="fw-bold mb-0 text-white">Barbearia</h6>
+                <h6 class="fw-bold mb-0 text-white">Barbearia Borsani's</h6>
                 <small style="color: #A1A1AA;">⭐ 5.0 (205) • endereço</small>
               </div>
             </div>
@@ -292,8 +315,7 @@
   </div>
 
   <script>
-    // URL DA API .NET (SINCRONIZADA COM A PORTA 5000)
-    const API_URL = 'http://localhost:5000/api/agendamentos'; 
+    const API_URL = 'https://footer-chowtime-outnumber.ngrok-free.dev/api/agendamentos'; 
 
     function mostrarAlerta(titulo, texto, icone = 'warning') {
       Swal.fire({
@@ -308,10 +330,6 @@
         buttonsStyling: false
       });
     }
-
-    window.alert = function(msg) {
-      mostrarAlerta('Atenção', msg, 'info');
-    };
 
     const servicos = [
       { id: 1, nome: "Corte de cabelo masculino", min: 30, preco: 35, cat: "Cabelo" },
@@ -426,28 +444,64 @@
       btn.classList.add('active');
     }
 
+    function irParaPasso(passo) {
+      passoAtual = passo;
+
+      document.getElementById('passo1').classList.add('d-none');
+      document.getElementById('passo2').classList.add('d-none');
+      document.getElementById('passo3').classList.add('d-none');
+
+      document.querySelectorAll('.step-pill').forEach(e => e.classList.remove('active'));
+      document.getElementById(`pill-passo${passo}`).classList.add('active');
+
+      const btnVoltar = document.getElementById('btnVoltar');
+      const titulo = document.getElementById('tituloPasso');
+      const btnContinuar = document.getElementById('btnContinuar');
+
+      if (passo === 1) {
+        document.getElementById('passo1').classList.remove('d-none');
+        btnVoltar.classList.add('d-none');
+        titulo.innerText = 'Escolha os serviços';
+        btnContinuar.innerText = 'Continuar';
+      } else if (passo === 2) {
+        document.getElementById('passo2').classList.remove('d-none');
+        btnVoltar.classList.remove('d-none');
+        titulo.innerText = 'Profissional, Data e Horário';
+        btnContinuar.innerText = 'Avançar para Seus Dados';
+        carregarHorarios();
+      } else if (passo === 3) {
+        document.getElementById('passo3').classList.remove('d-none');
+        btnVoltar.classList.remove('d-none');
+        titulo.innerText = 'Identificação do Cliente';
+        btnContinuar.innerText = 'Confirmar Agendamento 🚀';
+      }
+    }
+
+    function voltarPasso() {
+      if (passoAtual > 1) {
+        irParaPasso(passoAtual - 1);
+      }
+    }
+
     async function avancarPasso() {
       if (passoAtual === 1) {
         irParaPasso(2);
       } else if (passoAtual === 2) {
+        if (!horarioEscolhido) {
+          mostrarAlerta('Horário necessário', 'Por favor, selecione um horário para continuar!');
+          return;
+        }
+        irParaPasso(3);
+      } else if (passoAtual === 3) {
         const nome = document.getElementById('nomeCliente').value.trim();
         const tel = document.getElementById('telCliente').value.trim();
-        let barbeiro = document.getElementById('selectBarbeiro').value;
+        const barbeiro = document.getElementById('selectBarbeiro').value;
         const data = document.getElementById('inputData').value;
         const obs = document.getElementById('obsCliente').value.trim();
 
-        if (!horarioEscolhido) {
-          mostrarAlerta('Horário necessário', 'Por favor, selecione um horário para o atendimento!');
-          return;
-        }
-
         if (!nome || !tel) {
-          mostrarAlerta('Campos em falta', 'Por favor, preencha o seu nome e telefone.');
+          mostrarAlerta('Campos em falta', 'Por favor, preencha seu nome e telefone.');
           return;
-        }
-
-        if (barbeiro === 'Sem preferência') {
-          barbeiro = 'Alexandre';
         }
 
         const listaNomesServicos = selecionados.map(s => s.nome);
@@ -494,7 +548,8 @@
               const response = await fetch("https://footer-chowtime-outnumber.ngrok-free.dev/api/agendamentos", {
                 method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json'
+                  'Content-Type': 'application/json',
+                  'ngrok-skip-browser-warning': 'true'
                 },
                 body: JSON.stringify(agendamentoDto)
               });
@@ -514,31 +569,10 @@
               }
             } catch (error) {
               console.error('Erro na requisição:', error);
-              mostrarAlerta('Erro de Conexão', 'Não foi possível conectar com o servidor da API. Certifique-se de que o backend .NET está ativo na porta 5021.', 'error');
+              mostrarAlerta('Erro de Conexão', 'Não foi possível conectar com o servidor da API.', 'error');
             }
           }
         });
-      }
-    }
-
-    function irParaPasso(passo) {
-      passoAtual = passo;
-      const p1 = document.getElementById('passo1');
-      const p2 = document.getElementById('passo2');
-      const btnVoltar = document.getElementById('btnVoltar');
-      const titulo = document.getElementById('tituloPasso');
-
-      if (passo === 2) {
-        p1.classList.add('d-none');
-        p2.classList.remove('d-none');
-        btnVoltar.classList.remove('d-none');
-        titulo.innerText = 'Profissional, Data e Dados';
-        carregarHorarios();
-      } else {
-        p2.classList.add('d-none');
-        p1.classList.remove('d-none');
-        btnVoltar.classList.add('d-none');
-        titulo.innerText = 'Selecionar serviços';
       }
     }
 
@@ -559,7 +593,7 @@
       document.querySelectorAll('.time-slot').forEach(e => e.classList.remove('selected'));
       el.classList.add('selected');
       horarioEscolhido = hora;
-    }                                                                                              
+    }
   </script>
 </body>
 </html>
