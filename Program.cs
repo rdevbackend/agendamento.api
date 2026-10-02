@@ -12,7 +12,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // 2. Configurar CORS para permitir chamadas do frontend
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("PermitirTudo", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyHeader()
@@ -27,13 +27,13 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
 });
 
-// Configurar Swagger
+// 4. Configurar Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// 4. Inicializar e popular o banco de dados SQLite
+// 5. Inicializar e popular o banco de dados SQLite
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -50,17 +50,20 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// 5. Middlewares
-if (app.Environment.IsDevelopment())
+// 6. Middlewares para servir os arquivos estáticos (HTML/CSS/JS da pasta wwwroot)
+app.UseDefaultFiles(); // Procura automaticamente pelo index.html
+app.UseStaticFiles();  // Serve o conteúdo de wwwroot
+
+// 7. Configuração do Swagger (Liberado em Produção e Desenvolvimento)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Agendamento v1");
+    c.RoutePrefix = "swagger"; // Garante acesso via /swagger
+});
 
-app.UseCors("PermitirTudo");
-
+app.UseCors("AllowAll");
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

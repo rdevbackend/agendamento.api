@@ -244,7 +244,7 @@
 
       try {
         // Adicionada a flag 'ngrok-skip-browser-warning' para evitar a página intermediária do ngrok
-        const resposta = await fetch(`${"https://footer-chowtime-outnumber.ngrok-free.dev/api"}/agendamentos`, {
+        const resposta = await fetch(`${"https://agendamento-api-5ny9.onrender.com/api/agendamentos"}`, {
           headers: {
             'ngrok-skip-browser-warning': 'true'
           }
@@ -383,7 +383,7 @@
 
     async function alterarStatus(id, novoStatus) {
       try {
-        const resposta = await fetch(`${"https://footer-chowtime-outnumber.ngrok-free.dev/api"}/agendamentos/${id}/status`, {
+        const resposta = await fetch(`${"https://agendamento-api-5ny9.onrender.com/api/agendamentos"}/${id}/status`, {
           method: 'PATCH',
           headers: { 
             'Content-Type': 'application/json',
