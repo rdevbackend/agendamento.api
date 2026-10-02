@@ -15,4 +15,4 @@ WORKDIR /app
 COPY --from=build /app/out .
 
 # Executa a DLL gerada pelo projeto agendamento.api
-ENTRYPOINT ["dotnet", "agendamento.api.dll"]
+ENTRYPOINT ["dotnet", "AgendamentoApi.dll"]
