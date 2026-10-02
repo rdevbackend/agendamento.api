@@ -14,4 +14,4 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/out .
 
-ENTRYPOINT ["dotnet", "AgendamentoApi.dll"]
+ENTRYPOINT ["dotnet", "agendamentoApi.dll"]
